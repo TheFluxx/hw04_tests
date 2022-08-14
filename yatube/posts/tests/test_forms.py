@@ -6,7 +6,6 @@ from django.test import Client, TestCase
 from django.urls import reverse
 import shutil
 import tempfile
-from tokenize import group
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -61,13 +60,12 @@ class PostCreateFormTests(TestCase):
             ).exists()
         )
 
-    
     def test_edit_post(self):
         form_data = {
             'text': 'Отредактированный пост',
             'group': PostCreateFormTests.group.id,
         }
-        response = self.authorized_client.post(
+        self.authorized_client.post(
             reverse('posts:post_edit', args=[PostCreateFormTests.post.id]),
             data=form_data,
             follow=True

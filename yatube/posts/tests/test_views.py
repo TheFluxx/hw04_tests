@@ -2,13 +2,13 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
-import requests
 from http import HTTPStatus
 from yatube.settings import num_posts
 
 from posts.models import Post, Group
 
 User = get_user_model()
+
 
 class PostViewsTest(TestCase):
     @classmethod
@@ -175,6 +175,7 @@ class PostViewsTest(TestCase):
 
     def url(self, url, **kwargs):
         return reverse(url, kwargs=kwargs)
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod
