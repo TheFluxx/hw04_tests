@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
@@ -26,7 +25,7 @@ class PostViewsTest(TestCase):
             text='Тестовый текст',
             group=cls.group,
         )
-    
+
     def setUp(self):
         PostViewsTest.authorized_client = Client()
         PostViewsTest.authorized_client.force_login(self.user)
@@ -82,7 +81,7 @@ class PostViewsTest(TestCase):
         post = response.context['page_obj'][0]
         self.assertEqual(str(post.author), 'StasBasov')
         # Не могу написать в слаке так как нет общих каналов
-        # Если писать (PostViewsTest.user, 'StasBasov') 
+        # Если писать (PostViewsTest.user, 'StasBasov')
         # AssertionError: <User: StasBasov> != 'StasBasov'
         self.assertEqual(post.text, 'Тестовый текст')
         self.assertEqual(str(post.group), 'Тестовая группа')
@@ -160,7 +159,6 @@ class PostViewsTest(TestCase):
 
     def test_new_post_absence(self):
         """Пост не попал в группу, для которой не был предназначен."""
-         # Создаем вторую группу для проверки test_new_post_absence
         PostViewsTest.group_two = Group.objects.create(
             title='Тестовая группа 2',
             slug='test-slug-two',

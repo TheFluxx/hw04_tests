@@ -1,7 +1,5 @@
-from posts.forms import PostForm
 from posts.models import Group, Post, User
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 import shutil
@@ -20,7 +18,6 @@ class PostCreateFormTests(TestCase):
             description='Тестовое описание',
         )
 
-
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
@@ -28,7 +25,9 @@ class PostCreateFormTests(TestCase):
 
     def setUp(self):
         self.authorized_client = Client()
-        PostCreateFormTests.author = User.objects.create_user(username='VeryFire')
+        PostCreateFormTests.author = User.objects.create_user(
+            username='VeryFire'
+        )
         PostCreateFormTests.post = Post.objects.create(
             author=self.author,
             text='text',

@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from http import HTTPStatus
 from posts.models import Post, Group, User
@@ -25,12 +24,11 @@ class PostURLTests(TestCase):
 
         self.author_client = Client()
         self.author_client.force_login(self.user)
-        
-    
+
     def test_urls_HTTPStatus(self):
         """URL-адрес использует соответствующий шаблон."""
         url_names = ('/', f'/group/{self.group.slug}/',
-         f'/profile/{self.user}/', f'/posts/{self.post.id}/')
+            f'/profile/{self.user}/', f'/posts/{self.post.id}/')
         for address in url_names:
             with self.subTest(address=address):
                 response = self.guest_client.get(address)
@@ -43,7 +41,6 @@ class PostURLTests(TestCase):
 
         response = self.no_author_client.get('/create/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
-    
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -77,7 +74,7 @@ class PostURLTests(TestCase):
     def test_guest_redirect(self):
         response = self.guest_client.get(f'/posts/{self.post.id}/edit/')
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-    
+
     def test_no_author_redirect(self):
         PostURLTests.no_author = User.objects.create_user(username='no_author')
         PostURLTests.no_author_client = Client()
