@@ -1,5 +1,5 @@
 from posts.forms import PostForm
-from posts.models import Group, Post
+from posts.models import Group, Post, User
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -8,8 +8,6 @@ import shutil
 import tempfile
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
-User = get_user_model()
 
 
 class PostCreateFormTests(TestCase):
@@ -21,12 +19,7 @@ class PostCreateFormTests(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
-        cls.author = User.objects.create_user(username='VeryFire')
-        cls.post = Post.objects.create(
-            author=cls.author,
-            text='text',
-        )
-        cls.form = PostForm()
+
 
     @classmethod
     def tearDownClass(cls):
@@ -34,8 +27,12 @@ class PostCreateFormTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
-        self.guest_client = Client()
         self.authorized_client = Client()
+        PostCreateFormTests.author = User.objects.create_user(username='VeryFire')
+        PostCreateFormTests.post = Post.objects.create(
+            author=self.author,
+            text='text',
+        )
         self.authorized_client.force_login(self.author)
 
     def test_create_post(self):

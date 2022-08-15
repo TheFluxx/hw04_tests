@@ -5,9 +5,7 @@ from django import forms
 from http import HTTPStatus
 from yatube.settings import num_posts
 
-from posts.models import Post, Group
-
-User = get_user_model()
+from posts.models import Post, Group, User
 
 
 class PostViewsTest(TestCase):
@@ -16,18 +14,10 @@ class PostViewsTest(TestCase):
         super().setUpClass()
         # Создаём авторизованного пользователя
         cls.user = User.objects.create_user(username='StasBasov')
-        cls.authorized_client = Client()
-        cls.authorized_client.force_login(cls.user)
         # Создаём группу в бд
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
-            description='Тестовое описание',
-        )
-        # Создаем вторую группу для проверки test_new_post_absence
-        cls.group_two = Group.objects.create(
-            title='Тестовая группа 2',
-            slug='test-slug-two',
             description='Тестовое описание',
         )
         # Создаём запись в бд
@@ -36,6 +26,10 @@ class PostViewsTest(TestCase):
             text='Тестовый текст',
             group=cls.group,
         )
+    
+    def setUp(self):
+        PostViewsTest.authorized_client = Client()
+        PostViewsTest.authorized_client.force_login(self.user)
 
     # Проверяем используемые шаблоны
     def test_pages_uses_correct_template(self):
@@ -67,7 +61,7 @@ class PostViewsTest(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_index_page_show_correct_context(self):
-        """В шаблон index передается ожидаемый список постов."""
+        """Проверка контекста index."""
         response = self.authorized_client.get(reverse('posts:index'))
         post_object = response.context['page_obj'][0]
         self.assertEqual(post_object.text[:15], f'{PostViewsTest.post.text}')
@@ -77,9 +71,7 @@ class PostViewsTest(TestCase):
         )
 
     def test_group_list_show_correct_context(self):
-        """В шаблон group_list передается ожидаемый список постов,
-        отфильтрованных по группе.
-        """
+        """Проверка контекста group_list."""
         response = self.authorized_client.get(
             reverse(
                 'posts:group_list',
@@ -89,13 +81,14 @@ class PostViewsTest(TestCase):
         self.assertIn('page_obj', response.context)
         post = response.context['page_obj'][0]
         self.assertEqual(str(post.author), 'StasBasov')
+        # Не могу написать в слаке так как нет общих каналов
+        # Если писать (PostViewsTest.user, 'StasBasov') 
+        # AssertionError: <User: StasBasov> != 'StasBasov'
         self.assertEqual(post.text, 'Тестовый текст')
         self.assertEqual(str(post.group), 'Тестовая группа')
 
     def test_profile_show_correct_context(self):
-        """В шаблон profile передается ожидаемый список постов,
-        отфильтрованных по пользователю.
-        """
+        """Проверка контекста profile"""
         response = self.authorized_client.get(
             reverse(
                 'posts:user',
@@ -109,8 +102,7 @@ class PostViewsTest(TestCase):
         self.assertEqual(str(post_object.author), 'StasBasov')
 
     def test_post_detail_show_correct_context(self):
-        """В шаблон post_detail передается ожидаемый пост,
-        отфильтрованный по id."""
+        """Проверка контекста post_detail."""
         response = self.authorized_client.get(
             reverse(
                 'posts:post_detail',
@@ -121,8 +113,7 @@ class PostViewsTest(TestCase):
         self.assertEqual(self.post.id, post_object)
 
     def test_post_edit_show_correct_context(self):
-        """В шаблон post_edit передается форма редактирования поста,
-        отфильтрованного по id."""
+        """Проверка контекста post_edit."""
         response = self.authorized_client.get(
             reverse(
                 'posts:post_edit',
@@ -139,7 +130,7 @@ class PostViewsTest(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_create_post_show_correct_context(self):
-        """В шаблон create_post передается форма создания поста."""
+        """Проверка контекста create_post."""
         response = self.authorized_client.get(reverse('posts:post_create'))
         form_fields = {
             'text': forms.fields.CharField,
@@ -169,12 +160,15 @@ class PostViewsTest(TestCase):
 
     def test_new_post_absence(self):
         """Пост не попал в группу, для которой не был предназначен."""
+         # Создаем вторую группу для проверки test_new_post_absence
+        PostViewsTest.group_two = Group.objects.create(
+            title='Тестовая группа 2',
+            slug='test-slug-two',
+            description='Тестовое описание',
+        )
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertNotEqual(response.context.get('page_obj')[0].group,
                             self.group_two)
-
-    def url(self, url, **kwargs):
-        return reverse(url, kwargs=kwargs)
 
 
 class PaginatorViewsTest(TestCase):
@@ -234,6 +228,7 @@ class PaginatorViewsTest(TestCase):
             )
         )
         self.assertEqual(len(response.context['page_obj']), num_posts)
+        # num_posts уже константа в settings.py
 
     def test_second_profile_page_contains_three_records(self):
         """На вторую страницу profile выводятся оставшиеся 3 поста"""
