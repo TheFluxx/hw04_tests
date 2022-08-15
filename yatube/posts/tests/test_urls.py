@@ -28,7 +28,7 @@ class PostURLTests(TestCase):
     def test_urls_HTTPStatus(self):
         """URL-адрес использует соответствующий шаблон."""
         url_names = ('/', f'/group/{self.group.slug}/',
-            f'/profile/{self.user}/', f'/posts/{self.post.id}/')
+                     f'/profile/{self.user}/', f'/posts/{self.post.id}/')
         for address in url_names:
             with self.subTest(address=address):
                 response = self.guest_client.get(address)
