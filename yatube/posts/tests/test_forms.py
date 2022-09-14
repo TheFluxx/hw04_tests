@@ -1,3 +1,4 @@
+from cgitb import text
 from posts.models import Group, Post, User
 from django.conf import settings
 from django.test import Client, TestCase
@@ -24,13 +25,10 @@ class PostCreateFormTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_client = Client()
-        PostCreateFormTests.author = User.objects.create_user(
+        self.author = User.objects.create_user(
             username='VeryFire'
-        )
-        PostCreateFormTests.post = Post.objects.create(
-            author=self.author,
-            text='text',
         )
         self.authorized_client.force_login(self.author)
 
@@ -49,27 +47,23 @@ class PostCreateFormTests(TestCase):
                              kwargs={'username':
                                      f'{self.author}'}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertTrue(
-            Post.objects.filter(
-                group=f'{PostCreateFormTests.group.id}',
-                text='text',
-            ).exists()
-        )
+        self.assertEqual(self.post.text, 'text')
+        self.assertEqual(PostCreateFormTests.group, self.group)
 
     def test_edit_post(self):
         form_data = {
             'text': 'Отредактированный пост',
-            'group': PostCreateFormTests.group.id,
+            'group': self.group.id,
         }
         self.authorized_client.post(
-            reverse('posts:post_edit', args=[PostCreateFormTests.post.id]),
+            reverse('posts:post_edit', args=[self.post.id]),
             data=form_data,
             follow=True
         )
         self.assertTrue(
             Post.objects.filter(
                 id=self.post.id,
-                group=PostCreateFormTests.group,
+                group=self.group,
                 text='Отредактированный пост',
             ).exists()
         )

@@ -1,8 +1,10 @@
+from xmlrpc.client import Boolean
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
 from http import HTTPStatus
-from yatube.settings import num_posts
+from posts.forms import PostForm
+from yatube.settings import NUM_POSTS
 
 from posts.models import Post, Group, User
 
@@ -79,12 +81,9 @@ class PostViewsTest(TestCase):
         )
         self.assertIn('page_obj', response.context)
         post = response.context['page_obj'][0]
-        self.assertEqual(str(post.author), 'StasBasov')
-        # Не могу написать в слаке так как нет общих каналов
-        # Если писать (PostViewsTest.user, 'StasBasov')
-        # AssertionError: <User: StasBasov> != 'StasBasov'
+        self.assertEqual(PostViewsTest.user, post.author)
         self.assertEqual(post.text, 'Тестовый текст')
-        self.assertEqual(str(post.group), 'Тестовая группа')
+        self.assertEqual(PostViewsTest.group, post.group)
 
     def test_profile_show_correct_context(self):
         """Проверка контекста profile"""
@@ -127,6 +126,9 @@ class PostViewsTest(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+        self.assertIsInstance(response.context.get('form'), PostForm)
+        self.assertEqual(response.context.get('is_edit'), True)
+        self.assertIsInstance(response.context.get('is_edit'), Boolean)
 
     def test_create_post_show_correct_context(self):
         """Проверка контекста create_post."""
@@ -159,6 +161,7 @@ class PostViewsTest(TestCase):
 
     def test_new_post_absence(self):
         """Пост не попал в группу, для которой не был предназначен."""
+        posts_count = Post.objects.count()
         PostViewsTest.group_two = Group.objects.create(
             title='Тестовая группа 2',
             slug='test-slug-two',
@@ -167,6 +170,12 @@ class PostViewsTest(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertNotEqual(response.context.get('page_obj')[0].group,
                             self.group_two)
+        self.post = Post.objects.create(
+            author=self.user,
+            text='Тестовый пост1',
+            group=self.group_two
+        )
+        self.assertEqual(Post.objects.count(), posts_count + 1)
 
 
 class PaginatorViewsTest(TestCase):
@@ -190,7 +199,7 @@ class PaginatorViewsTest(TestCase):
     def test_first_index_page_contains_ten_records(self):
         """На первую страницу index выводится 10 постов из 13"""
         response = self.client.get(reverse('posts:index'))
-        self.assertEqual(len(response.context['page_obj']), num_posts)
+        self.assertEqual(len(response.context['page_obj']), NUM_POSTS)
 
     def test_second_index_page_contains_three_records(self):
         """На вторую страницу index выводятся оставшиеся 3 поста"""
@@ -205,7 +214,7 @@ class PaginatorViewsTest(TestCase):
                 kwargs={'slug': 'test-slug'}
             )
         )
-        self.assertEqual(len(response.context['page_obj']), num_posts)
+        self.assertEqual(len(response.context['page_obj']), NUM_POSTS)
 
     def test_second_group_page_contains_three_records(self):
         """На вторую страницу group_list выводятся оставшиеся 3 поста"""
@@ -225,8 +234,7 @@ class PaginatorViewsTest(TestCase):
                 kwargs={'username': 'StasBasov'}
             )
         )
-        self.assertEqual(len(response.context['page_obj']), num_posts)
-        # num_posts уже константа в settings.py
+        self.assertEqual(len(response.context['page_obj']), NUM_POSTS)
 
     def test_second_profile_page_contains_three_records(self):
         """На вторую страницу profile выводятся оставшиеся 3 поста"""

@@ -25,8 +25,7 @@ class PostURLTests(TestCase):
         self.author_client = Client()
         self.author_client.force_login(self.user)
 
-    def test_urls_HTTPStatus(self):
-        """URL-адрес использует соответствующий шаблон."""
+    def page_accessibility_test(self):
         url_names = ('/', f'/group/{self.group.slug}/',
                      f'/profile/{self.user}/', f'/posts/{self.post.id}/')
         for address in url_names:
@@ -35,11 +34,7 @@ class PostURLTests(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_urls_HTTPStatus(self):
-        PostURLTests.no_author = User.objects.create_user(username='no_author')
-        PostURLTests.no_author_client = Client()
-        PostURLTests.no_author_client.force_login(self.no_author)
-
-        response = self.no_author_client.get('/create/')
+        response = self.author_client.get('/create/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_uses_correct_template(self):
@@ -55,12 +50,8 @@ class PostURLTests(TestCase):
                 response = self.guest_client.get(address)
                 self.assertTemplateUsed(response, template)
 
-    def test_create_urls_uses_correct_template(self):
-        PostURLTests.no_author = User.objects.create_user(username='no_author')
-        PostURLTests.no_author_client = Client()
-        PostURLTests.no_author_client.force_login(self.no_author)
-
-        response = self.no_author_client.get('/create/')
+    def accessibility_of_the_edit_page(self):
+        response = self.author_client.get('/create/')
         self.assertTemplateUsed(response, 'posts/create_post.html')
 
     def test_unexisting_page_url_exists_at_desired_location(self):
@@ -76,9 +67,9 @@ class PostURLTests(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_no_author_redirect(self):
-        PostURLTests.no_author = User.objects.create_user(username='no_author')
-        PostURLTests.no_author_client = Client()
-        PostURLTests.no_author_client.force_login(self.no_author)
+        self.no_author = User.objects.create_user(username='no_author')
+        self.no_author_client = Client()
+        self.no_author_client.force_login(self.no_author)
 
         response = self.no_author_client.get(f'/posts/{self.post.id}/edit/')
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
