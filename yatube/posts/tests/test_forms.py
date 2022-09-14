@@ -29,7 +29,7 @@ class PostCreateFormTests(TestCase):
         self.author = User.objects.create_user(
             username='VeryFire'
         )
-        self.post = Post.objects.create(
+        PostCreateFormTests.post = Post.objects.create(
             author=self.author,
             text='text',
         )
