@@ -29,6 +29,10 @@ class PostCreateFormTests(TestCase):
         self.author = User.objects.create_user(
             username='VeryFire'
         )
+        self.post = Post.objects.create(
+            author=self.author,
+            text='text',
+        )
         self.authorized_client.force_login(self.author)
 
     def test_create_post(self):
