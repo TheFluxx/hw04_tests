@@ -1,4 +1,3 @@
-from cgitb import text
 from posts.models import Group, Post, User
 from django.conf import settings
 from django.test import Client, TestCase
