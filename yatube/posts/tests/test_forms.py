@@ -53,7 +53,7 @@ class PostCreateFormTests(TestCase):
             data=form_data,
         )
         LOGIN_URL = reverse('users:login')
-        POST_EDIT_URL = f'/create/'
+        POST_EDIT_URL = '/create/'
         self.assertRedirects(response, f'{LOGIN_URL}?next={POST_EDIT_URL}')
 
     def test_edit_post(self):
@@ -81,4 +81,3 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(PostCreateFormTests.group, self.group)
         self.assertEqual(Post.objects.first().text, 'Отредактированный пост')
         self.assertEqual(self.author.username, 'VeryFire')
-        
