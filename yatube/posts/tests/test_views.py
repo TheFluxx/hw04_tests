@@ -1,4 +1,3 @@
-from xmlrpc.client import Boolean
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
