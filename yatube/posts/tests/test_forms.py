@@ -48,13 +48,14 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(Post.objects.first().text, 'text')
         self.assertEqual(PostCreateFormTests.group, self.group)
+
+    def test_guest_create_post(self):
         response = self.guest_client.post(
             reverse('posts:post_create'),
-            data=form_data,
         )
         LOGIN_URL = reverse('users:login')
-        POST_EDIT_URL = '/create/'
-        self.assertRedirects(response, f'{LOGIN_URL}?next={POST_EDIT_URL}')
+        POST_CREATE_URL = '/create/'
+        self.assertRedirects(response, f'{LOGIN_URL}?next={POST_CREATE_URL}')
 
     def test_edit_post(self):
         PostCreateFormTests.post = Post.objects.create(
@@ -70,14 +71,19 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
+        post = Post.objects.first()
+        self.assertEqual(post.group, PostCreateFormTests.group)
+        self.assertEqual(Post.objects.first().text, 'Отредактированный пост')
+        self.assertEqual(post.author, self.author)
+
+    def test_guest_edit_post(self):
+        PostCreateFormTests.post = Post.objects.create(
+            author=self.author,
+            text='text',
+        )
         response = self.guest_client.post(
             reverse('posts:post_edit', args=[self.post.id]),
-            data=form_data,
-            follow=True
         )
         LOGIN_URL = reverse('users:login')
         POST_EDIT_URL = f'/posts/{self.post.id}/edit/'
         self.assertRedirects(response, f'{LOGIN_URL}?next={POST_EDIT_URL}')
-        self.assertEqual(PostCreateFormTests.group, self.group)
-        self.assertEqual(Post.objects.first().text, 'Отредактированный пост')
-        self.assertEqual(self.author.username, 'VeryFire')

@@ -65,11 +65,8 @@ class PostViewsTest(TestCase):
         """Проверка контекста index."""
         response = self.authorized_client.get(reverse('posts:index'))
         post_object = response.context['page_obj'][0]
-        self.assertEqual(post_object.text[:15], f'{PostViewsTest.post.text}')
-        self.assertEqual(
-            str(post_object.group),
-            f'{PostViewsTest.group.title}'
-        )
+        self.assertEqual(post_object.text, PostViewsTest.post.text)
+        self.assertEqual(post_object.group.title, PostViewsTest.group.title)
 
     def test_group_list_show_correct_context(self):
         """Проверка контекста group_list."""
@@ -96,7 +93,6 @@ class PostViewsTest(TestCase):
         post_object = response.context['page_obj'].object_list[0]
         self.assertEqual(post_object.text, 'Тестовый текст')
         self.assertEqual(PostViewsTest.group, post_object.group)
-        self.assertEqual(post_object.group.slug, 'test-slug')
         self.assertEqual(PostViewsTest.user, post_object.author)
 
     def test_post_detail_show_correct_context(self):
@@ -128,7 +124,7 @@ class PostViewsTest(TestCase):
                 self.assertIsInstance(form_field, expected)
         self.assertIsInstance(response.context.get('form'), PostForm)
         self.assertEqual(response.context.get('is_edit'), True)
-        self.assertIsInstance(response.context.get('is_edit'), Boolean)
+        self.assertIsInstance(response.context.get('is_edit'), bool)
 
     def test_create_post_show_correct_context(self):
         """Проверка контекста create_post."""
